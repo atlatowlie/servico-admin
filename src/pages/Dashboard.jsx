@@ -34,10 +34,11 @@ export default function Dashboard() {
     <div className="space-y-5 md:space-y-6">
       <h2 className="text-lg md:text-xl font-bold">Dashboard</h2>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
         <StatCard label="Tenants" value={stats?.total_tenants ?? '-'} />
         <StatCard label="Users" value={stats?.total_users ?? '-'} />
         <StatCard label="Jobs" value={stats?.total_jobs ?? '-'} />
+        <StatCard label="Customers" value={stats?.total_customers ?? '-'} />
         <StatCard label="Revenue" value={stats ? `$${(stats.total_revenue_cents / 100).toFixed(2)}` : '-'} sub="Twilio usage" />
       </div>
 

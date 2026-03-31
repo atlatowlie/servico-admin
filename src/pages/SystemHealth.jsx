@@ -3,6 +3,7 @@ import { api } from '../utils/api'
 import StatCard from '../components/StatCard'
 
 function formatBytes(bytes) {
+  if (bytes == null) return 'N/A'
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`
   if (bytes < 1073741824) return `${(bytes / 1048576).toFixed(1)} MB`
@@ -19,15 +20,26 @@ function formatUptime(seconds) {
 export default function SystemHealth() {
   const [health, setHealth] = useState(null)
   const [appHealth, setAppHealth] = useState(null)
+  const [error, setError] = useState(null)
 
-  useEffect(() => {
-    api.get('/api/admin/health').then(d => setHealth(d.health)).catch(() => {})
+  const refresh = () => {
+    setError(null)
+    api.get('/api/admin/health').then(d => setHealth(d.health)).catch(e => setError(e.message))
     api.get('/api/health').then(d => setAppHealth(d)).catch(() => {})
-  }, [])
+  }
+
+  useEffect(() => { refresh() }, [])
 
   return (
     <div className="space-y-5 md:space-y-6">
-      <h2 className="text-lg md:text-xl font-bold">System Health</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg md:text-xl font-bold">System Health</h2>
+        <button onClick={refresh} className="text-sm text-emerald-400 hover:text-emerald-300 active:text-emerald-200 px-3 py-1.5">
+          Refresh
+        </button>
+      </div>
+
+      {error && <p className="text-red-400 text-sm bg-red-500/10 rounded-lg px-4 py-3">{error}</p>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatCard label="Uptime" value={health ? formatUptime(health.uptime_seconds) : '-'} />
@@ -36,6 +48,21 @@ export default function SystemHealth() {
         <StatCard label="Node" value={health?.node_version || '-'} />
       </div>
 
+      {/* Table row counts */}
+      {health?.table_counts && (
+        <div>
+          <h3 className="text-sm font-medium text-slate-400 mb-3">Database Tables</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {Object.entries(health.table_counts).map(([table, count]) => (
+              <div key={table} className="bg-surface border border-slate-700 rounded-lg p-3">
+                <p className="text-xs text-slate-400 capitalize">{table}</p>
+                <p className="text-lg font-bold">{count}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
         <div className="bg-surface rounded-lg border border-slate-700 p-4 md:p-5">
           <h3 className="text-sm font-medium text-slate-400 mb-3">Database</h3>
@@ -43,7 +70,7 @@ export default function SystemHealth() {
             <div className="flex justify-between">
               <span className="text-slate-400">Connected</span>
               <span className={health?.db_connected ? 'text-emerald-400' : 'text-red-400'}>
-                {health?.db_connected ? 'Yes' : 'No'}
+                {health?.db_connected ? 'Yes' : health ? 'No' : '-'}
               </span>
             </div>
             <div className="flex justify-between gap-2">
