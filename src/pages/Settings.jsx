@@ -6,7 +6,7 @@ const SMTP_FIELDS = [
   { key: 'smtp_port', label: 'SMTP Port', type: 'number', placeholder: '587' },
   { key: 'smtp_user', label: 'SMTP Username', type: 'text', placeholder: 'you@example.com' },
   { key: 'smtp_pass', label: 'SMTP Password', type: 'password', placeholder: '••••••••' },
-  { key: 'smtp_from_email', label: 'From Email', type: 'email', placeholder: 'noreply@yourcompany.com' },
+  { key: 'smtp_from', label: 'From Email', type: 'email', placeholder: 'noreply@yourcompany.com' },
   { key: 'smtp_from_name', label: 'From Name', type: 'text', placeholder: 'Servico' },
 ]
 
@@ -22,7 +22,7 @@ export default function Settings() {
     smtp_port: '587',
     smtp_user: '',
     smtp_pass: '',
-    smtp_from_email: '',
+    smtp_from: '',
     smtp_from_name: '',
     smtp_encryption: 'tls',
   })
@@ -43,7 +43,7 @@ export default function Settings() {
           smtp_port: s.smtp_port || '587',
           smtp_user: s.smtp_user || '',
           smtp_pass: '',
-          smtp_from_email: s.smtp_from_email || '',
+          smtp_from: s.smtp_from || '',
           smtp_from_name: s.smtp_from_name || '',
           smtp_encryption: s.smtp_encryption || 'tls',
         }))
