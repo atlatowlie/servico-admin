@@ -4,6 +4,7 @@ import { api } from '../utils/api'
 import Badge from '../components/Badge'
 import DataTable from '../components/DataTable'
 import StatCard from '../components/StatCard'
+import Modal from '../components/Modal'
 
 export default function TenantDetail() {
   const { id } = useParams()
@@ -16,6 +17,12 @@ export default function TenantDetail() {
   const [usage, setUsage] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('users')
+  const [passwordModal, setPasswordModal] = useState({ open: false, user: null })
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [passwordSuccess, setPasswordSuccess] = useState('')
 
   const load = async () => {
     try {
@@ -43,6 +50,50 @@ export default function TenantDetail() {
     load()
   }
 
+  const openPasswordModal = (user) => {
+    setPasswordModal({ open: true, user })
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordError('')
+    setPasswordSuccess('')
+  }
+
+  const closePasswordModal = () => {
+    setPasswordModal({ open: false, user: null })
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordError('')
+    setPasswordSuccess('')
+  }
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault()
+    setPasswordError('')
+    setPasswordSuccess('')
+
+    if (newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match')
+      return
+    }
+
+    setPasswordSaving(true)
+    try {
+      await api.patch(`/api/admin/tenants/${id}/users/${passwordModal.user.id}/password`, {
+        password: newPassword,
+      })
+      setPasswordSuccess('Password updated successfully')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err) {
+      setPasswordError(err?.message || 'Failed to update password')
+    }
+    setPasswordSaving(false)
+  }
+
   if (loading) return <p className="text-slate-400 p-4">Loading...</p>
   if (!tenant) return <p className="text-red-400 p-4">Tenant not found</p>
 
@@ -51,6 +102,14 @@ export default function TenantDetail() {
     { key: 'email', label: 'Email' },
     { key: 'role', label: 'Role', render: r => <Badge value={r.role} /> },
     { key: 'created_at', label: 'Joined', render: r => new Date(r.created_at).toLocaleDateString() },
+    { key: 'actions', label: '', render: r => (
+      <button
+        onClick={() => openPasswordModal(r)}
+        className="text-xs px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-slate-200 transition-colors"
+      >
+        Change Password
+      </button>
+    )},
   ]
 
   const jobCols = [
@@ -167,6 +226,66 @@ export default function TenantDetail() {
         {tab === 'customers' && <DataTable columns={customerCols} rows={customers} emptyText="No customers" />}
         {tab === 'numbers' && <DataTable columns={numberCols} rows={numbers} emptyText="No phone numbers provisioned" />}
       </div>
+
+      {/* Change Password Modal */}
+      <Modal open={passwordModal.open} onClose={closePasswordModal} title="Change Password">
+        {passwordModal.user && (
+          <form onSubmit={handlePasswordChange} className="space-y-4">
+            <div>
+              <p className="text-sm text-slate-400 mb-3">
+                Changing password for <span className="text-slate-200 font-medium">{passwordModal.user.name}</span>
+                <span className="text-slate-500 ml-1">({passwordModal.user.email})</span>
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">New Password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                required
+                minLength={8}
+                className="w-full bg-dark border border-slate-600 rounded-lg px-3 py-2 text-sm focus:border-emerald-400 focus:outline-none"
+                placeholder="Minimum 8 characters"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Confirm Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                required
+                minLength={8}
+                className="w-full bg-dark border border-slate-600 rounded-lg px-3 py-2 text-sm focus:border-emerald-400 focus:outline-none"
+                placeholder="Re-enter password"
+              />
+            </div>
+            {passwordError && (
+              <p className="text-sm text-red-400">{passwordError}</p>
+            )}
+            {passwordSuccess && (
+              <p className="text-sm text-emerald-400">{passwordSuccess}</p>
+            )}
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={passwordSaving}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-400 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+              >
+                {passwordSaving ? 'Updating...' : 'Update Password'}
+              </button>
+              <button
+                type="button"
+                onClick={closePasswordModal}
+                className="px-4 py-2.5 text-sm text-slate-400 hover:text-slate-200 border border-slate-600 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </div>
   )
 }
