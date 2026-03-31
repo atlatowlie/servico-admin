@@ -8,6 +8,7 @@ import TenantDetail from './pages/TenantDetail'
 import PhoneNumbers from './pages/PhoneNumbers'
 import SystemHealth from './pages/SystemHealth'
 import TwilioSettings from './pages/TwilioSettings'
+import Settings from './pages/Settings'
 
 function ProtectedRoute({ children }) {
   const { user, isLoading } = useAuth()
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="phone-numbers" element={<PhoneNumbers />} />
         <Route path="twilio-settings" element={<TwilioSettings />} />
         <Route path="health" element={<SystemHealth />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
