@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../utils/api'
 import StatCard from '../components/StatCard'
 import DataTable from '../components/DataTable'
+import Badge from '../components/Badge'
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
@@ -18,23 +19,29 @@ export default function Dashboard() {
 
   const tenantCols = [
     { key: 'name', label: 'Name' },
-    { key: 'plan', label: 'Plan' },
+    { key: 'plan', label: 'Plan', render: r => <Badge value={r.plan} /> },
     { key: 'user_count', label: 'Users' },
     { key: 'job_count', label: 'Jobs' },
   ]
 
-  return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-bold">Dashboard</h2>
+  const eventLabels = {
+    tenant_created: 'New tenant',
+    user_created: 'New user',
+    job_created: 'New job',
+  }
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  return (
+    <div className="space-y-5 md:space-y-6">
+      <h2 className="text-lg md:text-xl font-bold">Dashboard</h2>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatCard label="Tenants" value={stats?.total_tenants ?? '-'} />
         <StatCard label="Users" value={stats?.total_users ?? '-'} />
         <StatCard label="Jobs" value={stats?.total_jobs ?? '-'} />
         <StatCard label="Revenue" value={stats ? `$${(stats.total_revenue_cents / 100).toFixed(2)}` : '-'} sub="Twilio usage" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
         <div>
           <h3 className="text-sm font-medium text-slate-400 mb-3">Recent Tenants</h3>
           <DataTable columns={tenantCols} rows={tenants} onRowClick={r => navigate(`/tenants/${r.id}`)} />
@@ -45,10 +52,12 @@ export default function Dashboard() {
             {activity.length === 0 ? (
               <p className="p-4 text-sm text-slate-500">No recent activity</p>
             ) : activity.map((a, i) => (
-              <div key={i} className="px-4 py-3 text-sm">
-                <span className="text-emerald-400 font-mono text-xs mr-2">{a.event}</span>
-                <span className="text-slate-300">{a.detail}</span>
-                <span className="text-slate-500 text-xs ml-2">{new Date(a.created_at).toLocaleDateString()}</span>
+              <div key={i} className="px-3.5 md:px-4 py-3 text-sm flex items-start gap-2">
+                <span className="text-emerald-400 font-mono text-xs mt-0.5 flex-shrink-0 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                  {eventLabels[a.event] || a.event}
+                </span>
+                <span className="text-slate-300 truncate min-w-0">{a.detail}</span>
+                <span className="text-slate-500 text-xs flex-shrink-0 ml-auto">{new Date(a.created_at).toLocaleDateString()}</span>
               </div>
             ))}
           </div>

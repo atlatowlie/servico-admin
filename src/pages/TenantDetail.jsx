@@ -37,8 +37,8 @@ export default function TenantDetail() {
     load()
   }
 
-  if (loading) return <p className="text-slate-400">Loading...</p>
-  if (!tenant) return <p className="text-red-400">Tenant not found</p>
+  if (loading) return <p className="text-slate-400 p-4">Loading...</p>
+  if (!tenant) return <p className="text-red-400 p-4">Tenant not found</p>
 
   const userCols = [
     { key: 'name', label: 'Name' },
@@ -54,13 +54,15 @@ export default function TenantDetail() {
   ]
 
   return (
-    <div className="space-y-6">
-      <button onClick={() => navigate('/tenants')} className="text-sm text-slate-400 hover:text-slate-200">&larr; Back to Tenants</button>
+    <div className="space-y-5 md:space-y-6">
+      <button onClick={() => navigate('/tenants')} className="text-sm text-slate-400 hover:text-slate-200 active:text-white py-1">
+        &larr; Back to Tenants
+      </button>
 
-      <div className="bg-surface rounded-lg border border-slate-700 p-5">
-        <div className="flex items-start justify-between">
+      <div className="bg-surface rounded-lg border border-slate-700 p-4 md:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold">{tenant.name}</h2>
+            <h2 className="text-lg md:text-xl font-bold">{tenant.name}</h2>
             <p className="text-sm text-slate-400 mt-1">Slug: {tenant.slug}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -68,13 +70,13 @@ export default function TenantDetail() {
             <Badge value={tenant.plan} />
           </div>
         </div>
-        <div className="flex gap-3 mt-4">
+        <div className="flex flex-wrap gap-3 mt-4">
           <button
             onClick={toggleStatus}
-            className={`text-sm px-3 py-1.5 rounded transition-colors ${
+            className={`text-sm px-4 py-2 rounded-lg transition-colors font-medium ${
               tenant.status === 'active'
-                ? 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
-                : 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
+                ? 'bg-red-500/15 text-red-400 hover:bg-red-500/25 active:bg-red-500/30'
+                : 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 active:bg-emerald-500/30'
             }`}
           >
             {tenant.status === 'active' ? 'Suspend' : 'Activate'}
@@ -82,7 +84,7 @@ export default function TenantDetail() {
           <select
             value={tenant.plan}
             onChange={e => changePlan(e.target.value)}
-            className="bg-dark border border-slate-600 rounded px-2 py-1 text-sm"
+            className="bg-dark border border-slate-600 rounded-lg px-3 py-2 text-sm"
           >
             <option value="starter">Starter</option>
             <option value="pro">Pro</option>

@@ -48,27 +48,27 @@ export default function Tenants() {
     }
   }
 
-  const inp = 'w-full bg-dark border border-slate-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-emerald-500'
+  const inp = 'w-full bg-dark border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30'
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Tenants</h2>
-        <button onClick={() => setShowCreate(true)} className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm px-4 py-2 rounded transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h2 className="text-lg md:text-xl font-bold">Tenants</h2>
+        <button onClick={() => setShowCreate(true)} className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-sm px-4 py-2.5 rounded-lg transition-colors font-medium">
           + New Tenant
         </button>
       </div>
 
       <input
         type="text" placeholder="Search tenants..." value={search} onChange={e => setSearch(e.target.value)}
-        className="bg-surface border border-slate-700 rounded px-3 py-2 text-sm w-full max-w-xs focus:outline-none focus:border-emerald-500"
+        className="bg-surface border border-slate-700 rounded-lg px-3 py-2.5 text-sm w-full sm:max-w-xs focus:outline-none focus:border-emerald-500"
       />
 
       <DataTable columns={columns} rows={filtered} onRowClick={r => navigate(`/tenants/${r.id}`)} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Tenant">
         <form onSubmit={handleCreate} className="space-y-3">
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && <p className="text-red-400 text-sm bg-red-500/10 rounded px-3 py-2">{error}</p>}
           <input className={inp} placeholder="Company name" required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           <input className={inp} placeholder="Slug (URL-safe)" required value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} />
           <select className={inp} value={form.plan} onChange={e => setForm({ ...form, plan: e.target.value })}>
@@ -79,9 +79,9 @@ export default function Tenants() {
           <hr className="border-slate-700" />
           <p className="text-xs text-slate-400">Admin User</p>
           <input className={inp} placeholder="Admin name" required value={form.admin_name} onChange={e => setForm({ ...form, admin_name: e.target.value })} />
-          <input className={inp} type="email" placeholder="Admin email" required value={form.admin_email} onChange={e => setForm({ ...form, admin_email: e.target.value })} />
-          <input className={inp} type="password" placeholder="Admin password" required value={form.admin_password} onChange={e => setForm({ ...form, admin_password: e.target.value })} />
-          <button type="submit" disabled={creating} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded py-2 text-sm font-medium disabled:opacity-50">
+          <input className={inp} type="email" placeholder="Admin email" required autoComplete="off" value={form.admin_email} onChange={e => setForm({ ...form, admin_email: e.target.value })} />
+          <input className={inp} type="password" placeholder="Admin password" required autoComplete="new-password" value={form.admin_password} onChange={e => setForm({ ...form, admin_password: e.target.value })} />
+          <button type="submit" disabled={creating} className="w-full bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-lg py-3 text-sm font-medium disabled:opacity-50">
             {creating ? 'Creating...' : 'Create Tenant'}
           </button>
         </form>
