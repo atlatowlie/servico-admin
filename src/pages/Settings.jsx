@@ -38,6 +38,7 @@ export default function Settings() {
   }
 
   const handleTest = async () => {
+    if (testing) return
     if (!testEmail) {
       setMessage({ type: 'error', text: 'Enter a test email address' })
       return
@@ -46,11 +47,12 @@ export default function Settings() {
     setTesting(true)
     try {
       const data = await api.post('/api/admin/settings/smtp/test', { to: testEmail })
-      setMessage({ type: 'success', text: `Test email sent to ${testEmail} via ${data.provider || 'Resend'}` })
+      setMessage({ type: 'success', text: `Test email sent to ${testEmail}` })
     } catch (err) {
       setMessage({ type: 'error', text: err?.message || 'Failed to send test email' })
     }
-    setTesting(false)
+    // Keep disabled for 5s to prevent rapid re-sends
+    setTimeout(() => setTesting(false), 5000)
   }
 
   if (loading) return <p className="text-slate-400 p-4">Loading...</p>
@@ -124,7 +126,7 @@ export default function Settings() {
         <p className="text-xs text-slate-500 mb-4">
           Send a test email to verify delivery is working.
         </p>
-        <div className="flex flex-col sm:flex-row gap-3">
+        <form onSubmit={e => { e.preventDefault(); handleTest() }} className="flex flex-col sm:flex-row gap-3">
           <input
             type="email"
             value={testEmail}
@@ -133,13 +135,13 @@ export default function Settings() {
             className={`flex-1 ${inp}`}
           />
           <button
-            onClick={handleTest}
+            type="submit"
             disabled={testing}
             className="text-sm px-5 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 active:bg-slate-500 disabled:opacity-50 text-slate-200 transition-colors font-medium whitespace-nowrap"
           >
             {testing ? 'Sending...' : 'Send Test Email'}
           </button>
-        </div>
+        </form>
       </div>
     </div>
   )
