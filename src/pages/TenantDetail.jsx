@@ -244,8 +244,15 @@ export default function TenantDetail() {
     try {
       const data = await api.post(`/api/admin/tenants/${id}/login-as`)
       const configuredUrl = import.meta.env.VITE_SERVICO_URL?.trim()
-      const fallbackUrl = window.location.origin.replace('servico-admin', 'servico')
-      const servicoUrl = configuredUrl || fallbackUrl || 'https://app.servicocrm.com'
+      const origin = window.location.origin
+      const derivedUrl = /minhal\./i.test(origin)
+        ? origin.replace(/minhal\./i, 'app.')
+        : origin.includes('servico-admin')
+          ? origin.replace('servico-admin', 'servico')
+          : null
+      const isLocalAdmin = /localhost|127\.0\.0\.1/.test(origin)
+      const localFallback = isLocalAdmin ? 'http://localhost:7211' : null
+      const servicoUrl = configuredUrl || derivedUrl || localFallback || 'https://app.servicocrm.com'
       const target = new URL(`/impersonate/${data.impersonation_id}`, servicoUrl).toString()
       window.open(target, '_blank', 'noopener,noreferrer')
     } catch (err) {

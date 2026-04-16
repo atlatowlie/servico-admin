@@ -93,7 +93,7 @@ export default function Settings() {
         project_id: googleConfig.project_id,
         autocomplete_country: googleConfig.autocomplete_country,
       }
-      if (replaceGoogleKey && googleApiKey.trim()) payload.api_key = googleApiKey.trim()
+      if (googleApiKey.trim() && !clearGoogleKey) payload.api_key = googleApiKey.trim()
       if (clearGoogleKey) payload.clear_api_key = true
 
       const data = await api.patch('/api/admin/settings/google-maps', payload)
