@@ -73,9 +73,12 @@ function AccountTab() {
   useEffect(() => {
     (async () => {
       try {
-        const data = await api.get('/api/admin/twilio/status')
-        setStatus(data)
-        if (data.credentials) setCreds(c => ({ ...c, ...data.credentials }))
+        const [statusData, credsData] = await Promise.all([
+          api.get('/api/admin/twilio/status').catch(() => null),
+          api.get('/api/admin/twilio/credentials').catch(() => null),
+        ])
+        if (statusData) setStatus(statusData)
+        if (credsData?.credentials) setCreds(c => ({ ...c, ...credsData.credentials }))
       } catch {}
       setLoading(false)
     })()
