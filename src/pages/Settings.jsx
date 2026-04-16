@@ -4,18 +4,44 @@ import { api } from '../utils/api'
 export default function Settings() {
   const [fromName, setFromName] = useState('Servico')
   const [fromEmail, setFromEmail] = useState('noreply@app.servicocrm.com')
+  const [googleConfig, setGoogleConfig] = useState({
+    enabled: false,
+    provider: 'google_places',
+    account_label: '',
+    project_id: '',
+    autocomplete_country: '',
+    api_key_set: false,
+  })
+  const [googleApiKey, setGoogleApiKey] = useState('')
+  const [replaceGoogleKey, setReplaceGoogleKey] = useState(false)
+  const [clearGoogleKey, setClearGoogleKey] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [savingGoogle, setSavingGoogle] = useState(false)
   const [testing, setTesting] = useState(false)
   const [testEmail, setTestEmail] = useState('')
   const [message, setMessage] = useState(null)
+  const [googleMessage, setGoogleMessage] = useState(null)
 
   useEffect(() => {
-    api.get('/api/admin/settings/smtp')
-      .then(data => {
-        const s = data.smtp || {}
+    Promise.all([
+      api.get('/api/admin/settings/smtp'),
+      api.get('/api/admin/settings/google-maps'),
+    ])
+      .then(([smtpData, googleData]) => {
+        const s = smtpData.smtp || {}
         if (s.smtp_from_name) setFromName(s.smtp_from_name)
         if (s.smtp_from) setFromEmail(s.smtp_from)
+
+        const next = googleData.config || {}
+        setGoogleConfig({
+          enabled: !!next.enabled,
+          provider: next.provider || 'google_places',
+          account_label: next.account_label || '',
+          project_id: next.project_id || '',
+          autocomplete_country: next.autocomplete_country || '',
+          api_key_set: !!next.api_key_set,
+        })
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -53,6 +79,41 @@ export default function Settings() {
     }
     // Keep disabled for 5s to prevent rapid re-sends
     setTimeout(() => setTesting(false), 5000)
+  }
+
+  const handleGoogleSave = async (e) => {
+    e.preventDefault()
+    setGoogleMessage(null)
+    setSavingGoogle(true)
+    try {
+      const payload = {
+        enabled: !!googleConfig.enabled,
+        provider: googleConfig.provider,
+        account_label: googleConfig.account_label,
+        project_id: googleConfig.project_id,
+        autocomplete_country: googleConfig.autocomplete_country,
+      }
+      if (replaceGoogleKey && googleApiKey.trim()) payload.api_key = googleApiKey.trim()
+      if (clearGoogleKey) payload.clear_api_key = true
+
+      const data = await api.patch('/api/admin/settings/google-maps', payload)
+      const next = data.config || {}
+      setGoogleConfig({
+        enabled: !!next.enabled,
+        provider: next.provider || 'google_places',
+        account_label: next.account_label || '',
+        project_id: next.project_id || '',
+        autocomplete_country: next.autocomplete_country || '',
+        api_key_set: !!next.api_key_set,
+      })
+      setGoogleApiKey('')
+      setReplaceGoogleKey(false)
+      setClearGoogleKey(false)
+      setGoogleMessage({ type: 'success', text: 'Google Maps settings saved' })
+    } catch (err) {
+      setGoogleMessage({ type: 'error', text: err?.message || 'Failed to save Google Maps settings' })
+    }
+    setSavingGoogle(false)
   }
 
   if (loading) return <p className="text-slate-400 p-4">Loading...</p>
@@ -137,12 +198,146 @@ export default function Settings() {
           <button
             type="submit"
             disabled={testing}
-            className="text-sm px-5 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 active:bg-slate-500 disabled:opacity-50 text-slate-200 transition-colors font-medium whitespace-nowrap"
+            className="text-sm px-5 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 active:bg-slate-500 disabled:opacity-50 text-white transition-colors font-medium whitespace-nowrap"
           >
             {testing ? 'Sending...' : 'Send Test Email'}
           </button>
         </form>
       </div>
+
+      <form onSubmit={handleGoogleSave}>
+        <div className="bg-surface rounded-lg border border-slate-700 p-4 md:p-5 space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-medium text-slate-400">Google Maps / Places</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Global Google Cloud settings for CRM address autocomplete and place lookup.
+              </p>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-slate-200">
+              <input
+                type="checkbox"
+                checked={googleConfig.enabled}
+                onChange={e => setGoogleConfig(current => ({ ...current, enabled: e.target.checked }))}
+              />
+              Enabled
+            </label>
+          </div>
+
+          {googleMessage && (
+            <p className={`text-sm rounded-lg px-4 py-3 ${
+              googleMessage.type === 'success'
+                ? 'text-emerald-400 bg-emerald-500/10'
+                : 'text-red-400 bg-red-500/10'
+            }`}>
+              {googleMessage.text}
+            </p>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">Provider Mode</label>
+              <select
+                className={inp}
+                value={googleConfig.provider}
+                onChange={e => setGoogleConfig(current => ({ ...current, provider: e.target.value }))}
+              >
+                <option value="google_places">Places API</option>
+                <option value="google_maps">Maps API</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">Account / Project Label</label>
+              <input
+                className={inp}
+                value={googleConfig.account_label}
+                onChange={e => setGoogleConfig(current => ({ ...current, account_label: e.target.value }))}
+                placeholder="Main Google Cloud account"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">Google Cloud Project ID</label>
+              <input
+                className={inp}
+                value={googleConfig.project_id}
+                onChange={e => setGoogleConfig(current => ({ ...current, project_id: e.target.value }))}
+                placeholder="my-servico-project"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">Default Country Filter</label>
+              <input
+                className={inp}
+                value={googleConfig.autocomplete_country}
+                onChange={e => setGoogleConfig(current => ({ ...current, autocomplete_country: e.target.value.toUpperCase() }))}
+                placeholder="US"
+                maxLength={10}
+              />
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-slate-700 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <p className="text-sm font-medium text-slate-200">API Key</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Current state: {googleConfig.api_key_set ? 'configured' : 'not configured'}.
+                </p>
+              </div>
+              {googleConfig.api_key_set && !replaceGoogleKey && !clearGoogleKey && (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setReplaceGoogleKey(true); setClearGoogleKey(false) }}
+                    className="px-3 py-2 rounded-lg border border-slate-600 text-sm text-slate-200 hover:bg-slate-700 transition-colors"
+                  >
+                    Replace Key
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setClearGoogleKey(true); setReplaceGoogleKey(false); setGoogleApiKey('') }}
+                    className="px-3 py-2 rounded-lg border border-red-500/30 text-sm text-red-300 hover:bg-red-500/10 transition-colors"
+                  >
+                    Clear Key
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {(!googleConfig.api_key_set || replaceGoogleKey) && (
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1.5">New API Key</label>
+                <input
+                  type="password"
+                  className={inp}
+                  value={googleApiKey}
+                  onChange={e => setGoogleApiKey(e.target.value)}
+                  placeholder="Paste Google Maps Platform API key"
+                />
+              </div>
+            )}
+
+            {clearGoogleKey && (
+              <p className="text-xs text-red-400">
+                Saving now will remove the stored API key.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={savingGoogle}
+              className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+            >
+              {savingGoogle ? 'Saving...' : 'Save Google Maps Settings'}
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   )
 }
