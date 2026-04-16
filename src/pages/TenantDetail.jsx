@@ -243,8 +243,11 @@ export default function TenantDetail() {
     setImpersonating(true)
     try {
       const data = await api.post(`/api/admin/tenants/${id}/login-as`)
-      const servicoUrl = import.meta.env.VITE_SERVICO_URL || 'http://localhost:7211'
-      window.open(`${servicoUrl}/impersonate/${data.impersonation_id}`, '_blank')
+      const configuredUrl = import.meta.env.VITE_SERVICO_URL?.trim()
+      const fallbackUrl = window.location.origin.replace('servico-admin', 'servico')
+      const servicoUrl = configuredUrl || fallbackUrl || 'https://app.servicocrm.com'
+      const target = new URL(`/impersonate/${data.impersonation_id}`, servicoUrl).toString()
+      window.open(target, '_blank', 'noopener,noreferrer')
     } catch (err) {
       alert(err.message || 'Failed to login as tenant')
     }
