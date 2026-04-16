@@ -9,7 +9,7 @@ export default function Tenants() {
   const [tenants, setTenants] = useState([])
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
-  const [form, setForm] = useState({ name: '', slug: '', plan: 'starter', admin_email: '', admin_name: '', admin_password: '' })
+  const [form, setForm] = useState({ name: '', slug: '', plan: 'core', admin_email: '', admin_name: '', admin_password: '' })
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
@@ -39,7 +39,7 @@ export default function Tenants() {
     try {
       await api.post('/api/admin/tenants', form)
       setShowCreate(false)
-      setForm({ name: '', slug: '', plan: 'starter', admin_email: '', admin_name: '', admin_password: '' })
+      setForm({ name: '', slug: '', plan: 'core', admin_email: '', admin_name: '', admin_password: '' })
       load()
     } catch (err) {
       setError(err.message)
@@ -72,9 +72,9 @@ export default function Tenants() {
           <input className={inp} placeholder="Company name" required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           <input className={inp} placeholder="Slug (URL-safe)" required value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} />
           <select className={inp} value={form.plan} onChange={e => setForm({ ...form, plan: e.target.value })}>
-            <option value="starter">Starter</option>
+            <option value="core">Core</option>
+            <option value="growth">Growth</option>
             <option value="pro">Pro</option>
-            <option value="enterprise">Enterprise</option>
           </select>
           <hr className="border-slate-700" />
           <p className="text-xs text-slate-400">Admin User</p>

@@ -16,13 +16,8 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      const data = await api.post('/api/auth/login', { email, password })
-      const user = data.user
-      if (user.role !== 'superadmin') {
-        setError('Superadmin access required')
-        return
-      }
-      login(user, data.accessToken || data.token)
+      const data = await api.post('/api/admin/login', { email, password })
+      login(data.user, data.accessToken || data.token)
       navigate('/')
     } catch (err) {
       setError(err.message)
