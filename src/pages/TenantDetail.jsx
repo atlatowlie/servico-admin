@@ -155,17 +155,21 @@ export default function TenantDetail() {
   const [subscriptionPlanKey, setSubscriptionPlanKey] = useState('')
   const [overrideDraft, setOverrideDraft] = useState(createEmptyOverrideState())
   const [resolvedEntitlements, setResolvedEntitlements] = useState(createEmptyFeatureState())
+  const [availablePacks, setAvailablePacks] = useState([])
+  const [applyingPack, setApplyingPack] = useState(false)
   const [subscriptionSource, setSubscriptionSource] = useState('preview')
 
   const loadSubscription = async (tenantData) => {
     setSubscriptionLoading(true)
     try {
-      const [plansData, subscriptionData, overridesData, entitlementsData] = await Promise.all([
+      const [plansData, subscriptionData, overridesData, entitlementsData, packsData] = await Promise.all([
         api.get('/api/admin/subscription-plans').catch(() => null),
         api.get(`/api/admin/tenants/${id}/subscription`).catch(() => null),
         api.get(`/api/admin/tenants/${id}/feature-overrides`).catch(() => null),
         api.get(`/api/admin/tenants/${id}/entitlements`).catch(() => null),
+        api.get('/api/admin/packs').catch(() => null),
       ])
+      setAvailablePacks((packsData?.packs || []).filter(p => p.is_active !== false))
       const planList = normalizePlans(plansData?.plans || plansData?.subscription_plans || plansData || [])
       const fallbackPlans = planList.length > 0 ? planList : seedPlansFromDefaults()
       const normalized = normalizeTenantSubscription(
@@ -378,6 +382,31 @@ export default function TenantDetail() {
     setSubscriptionSaving(false)
   }
 
+  const handleApplyPack = async (packId, mode = 'merge') => {
+    if (!packId) return
+    const pack = availablePacks.find(p => p.id === packId)
+    const featureCount = pack?.features?.length || 0
+    const verb = mode === 'replace' ? 'REPLACE all current overrides with' : 'merge in'
+    const confirmMsg = `Apply "${pack?.name}"? This will ${verb} ${featureCount} feature${featureCount === 1 ? '' : 's'} on this tenant.`
+    if (!confirm(confirmMsg)) return
+    setApplyingPack(true)
+    setSubscriptionMessage(null)
+    try {
+      const res = await api.post(`/api/admin/tenants/${id}/apply-pack`, { pack_id: packId, mode })
+      await loadSubscription(tenant)
+      setSubscriptionMessage({
+        type: 'success',
+        text: `Applied "${pack?.name}" — ${res.applied_features?.length || 0} feature${res.applied_features?.length === 1 ? '' : 's'} ${mode === 'replace' ? 'now active (other overrides cleared)' : 'added to overrides'}.`,
+      })
+    } catch (err) {
+      setSubscriptionMessage({
+        type: 'error',
+        text: err?.message || 'Failed to apply pack.',
+      })
+    }
+    setApplyingPack(false)
+  }
+
   const handleOverrideChange = (featureKey, next) => {
     setOverrideDraft(current => ({
       ...current,
@@ -557,6 +586,40 @@ export default function TenantDetail() {
                 {subscriptionSaving ? 'Saving...' : 'Save Overrides'}
               </button>
             </div>
+
+            {/* Apply Pack — preset bundles defined under the Packs page */}
+            {availablePacks.length > 0 && (
+              <div className="mt-4 rounded-lg border border-emerald-900/40 bg-emerald-950/20 p-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <h4 className="text-sm font-medium text-slate-200">Apply a preset pack</h4>
+                    <p className="text-xs text-slate-500 mt-0.5">Flips every feature in the bundle on for this tenant in one click.</p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      defaultValue=""
+                      onChange={e => {
+                        const v = e.target.value
+                        if (!v) return
+                        const [pid, mode] = v.split('|')
+                        handleApplyPack(pid, mode)
+                        e.target.value = ''
+                      }}
+                      disabled={applyingPack}
+                      className="bg-dark border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 disabled:opacity-50"
+                    >
+                      <option value="">{applyingPack ? 'Applying…' : 'Choose a pack…'}</option>
+                      {availablePacks.map(p => (
+                        <optgroup key={p.id} label={`${p.name} (${(p.features || []).length} features)`}>
+                          <option value={`${p.id}|merge`}>{p.name} — Merge (add to overrides)</option>
+                          <option value={`${p.id}|replace`}>{p.name} — Replace (clear all then apply)</option>
+                        </optgroup>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="mt-4 space-y-4">
               {editableSections.map(section => (

@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Tenants from './pages/Tenants'
 import TenantDetail from './pages/TenantDetail'
 import Plans from './pages/Plans'
+import Packs from './pages/Packs'
 import PhoneNumbers from './pages/PhoneNumbers'
 import SystemHealth from './pages/SystemHealth'
 import TwilioSettings from './pages/TwilioSettings'
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="tenants" element={<Tenants />} />
         <Route path="tenants/:id" element={<TenantDetail />} />
         <Route path="plans" element={<Plans />} />
+        <Route path="packs" element={<Packs />} />
         <Route path="phone-numbers" element={<PhoneNumbers />} />
         <Route path="twilio-settings" element={<TwilioSettings />} />
         <Route path="health" element={<SystemHealth />} />
