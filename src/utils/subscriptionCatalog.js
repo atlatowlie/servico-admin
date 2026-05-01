@@ -28,6 +28,7 @@ const sections = [
       { key: 'feature.advanced_permissions', label: 'Advanced Permissions', description: 'Richer role and access control tooling.', kind: 'feature' },
       { key: 'feature.document_workflows', label: 'Document Workflows', description: 'Automated document routing and states.', kind: 'feature' },
       { key: 'feature.workflow_automation_basic', label: 'Workflow Automation', description: 'Basic automation and routing rules.', kind: 'feature' },
+      { key: 'module.forms', label: 'Forms', description: 'Custom form builder for jobs, clients, and contractors.', kind: 'module' },
     ],
   },
   {
