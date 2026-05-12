@@ -51,6 +51,8 @@ const sections = [
     description: 'Per-vertical workflow features (managed via Packs) and resource ceilings attached to plans.',
     features: [
       { key: 'construction.project_management', label: 'Project Management', description: 'Project planning, phases, and task tracking inside jobs.', kind: 'feature' },
+      { key: 'pack.construction', label: 'Pack: Construction', description: 'Vertical pack for construction tenants. Activates as a tenant override only — never granted by a plan. Required prerequisite for Product Types.', kind: 'pack', planEditable: false },
+      { key: 'module.product_types', label: 'Product Types', description: 'Type-aware catalog items (min_charge, window configurator). Override-only activation — requires Pack: Construction to also be enabled, otherwise the backend auto-disables this module.', kind: 'module', planEditable: false },
       { key: 'limit.users', label: 'User Limit', description: 'Maximum number of active users.', kind: 'limit', limitType: 'number' },
       { key: 'limit.phone_numbers', label: 'Phone Number Limit', description: 'Maximum provisioned phone numbers.', kind: 'limit', limitType: 'number' },
       { key: 'limit.sms_monthly', label: 'SMS Monthly Limit', description: 'Monthly SMS allocation.', kind: 'limit', limitType: 'number' },

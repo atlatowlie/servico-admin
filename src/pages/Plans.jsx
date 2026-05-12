@@ -364,7 +364,7 @@ export default function Plans() {
                     <p className="text-xs text-slate-500">{section.description}</p>
                   </div>
                   <div className="divide-y divide-slate-700/80">
-                    {section.features.filter(feature => feature.editable !== false).map(feature => {
+                    {section.features.filter(feature => feature.editable !== false && feature.planEditable !== false).map(feature => {
                       const current = featureState[feature.key] || { enabled: false, limit_value: '' }
                       const isLimit = isLimitFeature(feature.key)
                       return (
@@ -468,7 +468,7 @@ export default function Plans() {
               {subscriptionSections
                 .filter(section => section.key !== 'platform')
                 .flatMap(section => section.features)
-                .filter(feature => feature.editable !== false)
+                .filter(feature => feature.editable !== false && feature.planEditable !== false)
                 .map(feature => {
                   const current = createFeatureState[feature.key] || { enabled: false, limit_value: '' }
                   const isLimit = isLimitFeature(feature.key)
