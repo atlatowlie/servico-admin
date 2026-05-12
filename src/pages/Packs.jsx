@@ -155,7 +155,7 @@ function PackEditor({ pack, onClose, onSaved }) {
   // Group selectable features by their catalog kind
   const grouped = useMemo(() => {
     const list = subscriptionFeatures.filter(f =>
-      f.kind !== 'platform' && f.kind !== 'limit'
+      f.kind !== 'platform' && f.kind !== 'limit' && f.kind !== 'pack'
       && (filter === '' || (f.label + ' ' + f.key).toLowerCase().includes(filter.toLowerCase()))
     )
     const out = {}
