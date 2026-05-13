@@ -8,6 +8,7 @@ const sections = [
       { key: 'module.clients', label: 'Clients', description: 'Client records, contacts, and profiles.', kind: 'module' },
       { key: 'module.jobs', label: 'Jobs', description: 'Job tracking, scheduling, and workflows.', kind: 'module' },
       { key: 'module.quotes', label: 'Quotes', description: 'Quote creation and approvals.', kind: 'module' },
+      { key: 'module.rooms', label: 'Rooms', description: 'Per-room/space breakdown on quotes and jobs. Enabled by default for all tenants; set this override to Disable to hide the Rooms UI for a specific tenant.', kind: 'module' },
       { key: 'module.invoices', label: 'Invoices', description: 'Invoice creation, sending, and follow-up.', kind: 'module' },
       { key: 'module.payments', label: 'Payments', description: 'Payment collection and reconciliation.', kind: 'module' },
       { key: 'module.calendar', label: 'Calendar', description: 'Shared calendar and scheduling views.', kind: 'module' },
