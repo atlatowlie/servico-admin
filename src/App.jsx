@@ -10,6 +10,7 @@ import Packs from './pages/Packs'
 import PhoneNumbers from './pages/PhoneNumbers'
 import SystemHealth from './pages/SystemHealth'
 import TwilioSettings from './pages/TwilioSettings'
+import CallRecordingsBackfill from './pages/CallRecordingsBackfill'
 import Settings from './pages/Settings'
 
 function ProtectedRoute({ children }) {
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="packs" element={<Packs />} />
         <Route path="phone-numbers" element={<PhoneNumbers />} />
         <Route path="twilio-settings" element={<TwilioSettings />} />
+        <Route path="call-recordings-backfill" element={<CallRecordingsBackfill />} />
         <Route path="health" element={<SystemHealth />} />
         <Route path="settings" element={<Settings />} />
       </Route>
